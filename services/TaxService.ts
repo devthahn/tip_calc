@@ -33,17 +33,39 @@ const ZIP_TAX_RATES: { [key: string]: number } = {
     "10001": 8.875
 };
 
-export const getTaxRate = (stateInput: string | null, zipCode: string | null = null): number => {
-    // 1. Check Zip Code first (most accurate)
+const API_KEY = '8pIciK4/tDWS55AXqTYL/w==oWOkEbhB01yBKB0H';
+
+export const getTaxRate = async (stateInput: string | null, zipCode: string | null = null): Promise<number> => {
+    // 1. Try API Ninja with Zip Code (Most Accurate)
     if (zipCode) {
-        // Handle 5-digit zip codes (ignore +4 extension if present)
+        try {
+            const cleanZip = zipCode.split('-')[0];
+            const response = await fetch(`https://api.api-ninjas.com/v1/salestax?zip_code=${cleanZip}`, {
+                headers: { 'X-Api-Key': API_KEY }
+            });
+            const data = await response.json();
+
+            // API Ninja returns an array of results. We take the first one.
+            // Expected format: [{ "total_rate": "0.0775", ... }]
+            if (data && data.length > 0 && data[0].total_rate) {
+                // Convert decimal string to percentage (e.g., "0.0775" -> 7.75)
+                return parseFloat(data[0].total_rate) * 100;
+            }
+        } catch (error) {
+            console.warn("Error fetching tax rate from API Ninja:", error);
+            // Fallback to local data on error
+        }
+    }
+
+    // 2. Fallback to Local Zip Code Data
+    if (zipCode) {
         const cleanZip = zipCode.split('-')[0];
         if (ZIP_TAX_RATES[cleanZip]) {
             return ZIP_TAX_RATES[cleanZip];
         }
     }
 
-    // 2. Fallback to State Average
+    // 3. Fallback to State Average
     if (!stateInput) return 0;
 
     let code = stateInput.toUpperCase();

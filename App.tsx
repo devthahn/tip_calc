@@ -31,7 +31,7 @@ export default function App() {
       setLocationState(region);
       setZipCode(zip);
 
-      const rate = getTaxRate(region, zip);
+      const rate = await getTaxRate(region, zip);
       setTaxRate(rate);
       setTaxRateInput(rate.toFixed(2)); // Initialize taxRateInput with the fetched rate
     }
