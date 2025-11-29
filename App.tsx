@@ -122,7 +122,7 @@ export default function App() {
         <TextInput
           style={styles.input}
           placeholder="0.00"
-          keyboardType="numeric"
+          keyboardType="decimal-pad"
           value={foodCost}
           onChangeText={handleFoodCostChange}
           placeholderTextColor="#ccc"
@@ -136,7 +136,7 @@ export default function App() {
             style={styles.taxInput}
             value={taxAmount}
             onChangeText={handleTaxAmountChange}
-            keyboardType="numeric"
+            keyboardType="decimal-pad"
             placeholder="0.00"
           />
         </View>
@@ -146,7 +146,7 @@ export default function App() {
             style={styles.taxInput}
             value={taxRateInput}
             onChangeText={handleTaxRateChange}
-            keyboardType="numeric"
+            keyboardType="decimal-pad"
             placeholder="0.0"
           />
         </View>
