@@ -32,8 +32,9 @@ export default function App() {
       setZipCode(zip);
 
       const rate = await getTaxRate(region, zip);
-      setTaxRate(rate);
-      setTaxRateInput(rate.toFixed(2)); // Initialize taxRateInput with the fetched rate
+      const validRate = isNaN(rate) ? 0 : rate;
+      setTaxRate(validRate);
+      setTaxRateInput(validRate.toFixed(2)); // Initialize taxRateInput with the fetched rate
     }
     setLoadingLocation(false);
   };

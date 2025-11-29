@@ -49,7 +49,10 @@ export const getTaxRate = async (stateInput: string | null, zipCode: string | nu
             // Expected format: [{ "total_rate": "0.0775", ... }]
             if (data && data.length > 0 && data[0].total_rate) {
                 // Convert decimal string to percentage (e.g., "0.0775" -> 7.75)
-                return parseFloat(data[0].total_rate) * 100;
+                const rate = parseFloat(data[0].total_rate) * 100;
+                if (!isNaN(rate)) {
+                    return rate;
+                }
             }
         } catch (error) {
             console.warn("Error fetching tax rate from API Ninja:", error);
