@@ -33,30 +33,29 @@ const ZIP_TAX_RATES: { [key: string]: number } = {
     "10001": 8.875
 };
 
-const API_KEY = '8pIciK4/tDWS55AXqTYL/w==oWOkEbhB01yBKB0H';
+import { supabase } from './SupabaseClient';
 
 export const getTaxRate = async (stateInput: string | null, zipCode: string | null = null): Promise<number> => {
-    // 1. Try API Ninja with Zip Code (Most Accurate)
+    // 1. Try Supabase with Zip Code (Most Accurate)
     if (zipCode) {
         try {
             const cleanZip = zipCode.split('-')[0];
-            const response = await fetch(`https://api.api-ninjas.com/v1/salestax?zip_code=${cleanZip}`, {
-                headers: { 'X-Api-Key': API_KEY }
-            });
-            const data = await response.json();
 
-            // API Ninja returns an array of results. We take the first one.
-            // Expected format: [{ "total_rate": "0.0775", ... }]
-            if (data && data.length > 0 && data[0].total_rate) {
-                // Convert decimal string to percentage (e.g., "0.0775" -> 7.75)
-                const rate = parseFloat(data[0].total_rate) * 100;
-                if (!isNaN(rate)) {
-                    return rate;
-                }
+            const { data, error } = await supabase
+                .from('tax_rates')
+                .select('combined_rate')
+                .eq('zip_code', cleanZip)
+                .single();
+
+            if (data && data.combined_rate) {
+                return data.combined_rate * 100;
+            }
+
+            if (error) {
+                console.warn("Supabase lookup error:", error.message);
             }
         } catch (error) {
-            console.warn("Error fetching tax rate from API Ninja:", error);
-            // Fallback to local data on error
+            console.warn("Error fetching tax rate from Supabase:", error);
         }
     }
 
