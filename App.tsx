@@ -39,12 +39,21 @@ export default function App() {
     setLoadingLocation(false);
   };
 
+  const calculateTaxAmount = (cost: number, rate: number): string => {
+    if (isNaN(cost) || isNaN(rate)) return '0.00';
+    const tax = cost * (rate / 100);
+    // Round to nearest cent explicitly
+    // e.g. 0.775 -> 77.5 -> 78 -> 0.78
+    return (Math.round(tax * 100) / 100).toFixed(2);
+  };
+
+
   // Auto-calculate tax amount when food cost changes, keeping the RATE constant
   useEffect(() => {
     if (foodCost && taxRate > 0) {
       const cost = parseFloat(foodCost);
       if (!isNaN(cost)) {
-        const calculatedTax = (cost * (taxRate / 100)).toFixed(2);
+        const calculatedTax = calculateTaxAmount(cost, taxRate);
         // Only update if the amount is significantly different to avoid rounding loops
         if (Math.abs(parseFloat(calculatedTax) - (parseFloat(taxAmount) || 0)) > 0.01) {
           setTaxAmount(calculatedTax);
@@ -85,7 +94,7 @@ export default function App() {
         // Recalculate Amount based on new Rate
         const cost = parseFloat(foodCost);
         if (cost > 0) {
-          const newAmount = (cost * (newRate / 100)).toFixed(2);
+          const newAmount = calculateTaxAmount(cost, newRate);
           setTaxAmount(newAmount);
         }
       }
