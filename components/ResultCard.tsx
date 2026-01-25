@@ -6,10 +6,21 @@ interface ResultCardProps {
     taxAmount: number;
     tipAmount: number;
     totalAmount: number;
+    krwAmount?: number;
+    exchangeRate?: number;
+    lastUpdated?: Date;
     onRound: () => void;
 }
 
-export default function ResultCard({ foodCost, taxAmount, tipAmount, totalAmount, onRound }: ResultCardProps) {
+export default function ResultCard({ foodCost, taxAmount, tipAmount, totalAmount, krwAmount, exchangeRate, lastUpdated, onRound }: ResultCardProps) {
+    const formatDate = (date: Date) => {
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${month}/${day} ${hours}:${minutes}`;
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.row}>
@@ -27,11 +38,23 @@ export default function ResultCard({ foodCost, taxAmount, tipAmount, totalAmount
             <View style={styles.divider} />
             <View style={styles.totalRow}>
                 <Text style={styles.totalLabel}>Total</Text>
-                <View style={styles.totalRight}>
-                    <Text style={styles.totalValue}>${totalAmount.toFixed(2)}</Text>
-                    <TouchableOpacity style={styles.roundButton} onPress={onRound}>
-                        <Text style={styles.roundButtonText}>Round</Text>
-                    </TouchableOpacity>
+                <View style={styles.totalRightColumn}>
+                    <View style={styles.totalAmountRow}>
+                        <Text style={styles.totalValue}>${totalAmount.toFixed(2)}</Text>
+                        <TouchableOpacity style={styles.roundButton} onPress={onRound}>
+                            <Text style={styles.roundButtonText}>Round</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {exchangeRate !== undefined && exchangeRate > 0 && (
+                        <Text style={styles.rateText}>
+                            ({lastUpdated ? formatDate(lastUpdated) : ''}) $1 = ₩ {exchangeRate.toFixed(2)}
+                        </Text>
+                    )}
+
+                    {krwAmount !== undefined && (
+                        <Text style={styles.krwValue}>₩{krwAmount.toLocaleString()}</Text>
+                    )}
                 </View>
             </View>
         </View>
@@ -72,22 +95,38 @@ const styles = StyleSheet.create({
     totalRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems: 'flex-start', // Align to top so label stays up matching total
+        marginTop: 5,
     },
     totalLabel: {
         fontSize: 20,
         fontWeight: 'bold',
         color: '#333',
+        marginTop: 5, // Visual alignment with the first row of right column
     },
-    totalRight: {
+    totalRightColumn: {
+        alignItems: 'flex-end',
+    },
+    totalAmountRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        marginBottom: 5,
     },
     totalValue: {
         fontSize: 24,
         fontWeight: 'bold',
         color: '#4CAF50',
         marginRight: 10,
+    },
+    rateText: {
+        fontSize: 12,
+        color: '#999',
+        marginBottom: 2,
+    },
+    krwValue: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#555',
     },
     roundButton: {
         backgroundColor: '#E0E0E0',

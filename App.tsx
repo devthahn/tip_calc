@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { getCurrentLocation } from './services/LocationService';
 import { getTaxRate } from './services/TaxService';
+import { getExchangeRate } from './services/CurrencyService';
 import TipSlider from './components/TipSlider';
 import ResultCard from './components/ResultCard';
 
@@ -16,10 +17,22 @@ export default function App() {
   const [locationState, setLocationState] = useState<string | null>(null);
   const [zipCode, setZipCode] = useState<string | null>(null);
   const [loadingLocation, setLoadingLocation] = useState(true);
+  const [exchangeRate, setExchangeRate] = useState(0);
+  const [krwAmount, setKrwAmount] = useState(0);
+  const [isTipEnabled, setIsTipEnabled] = useState(true);
+  const [savedTipPercentage, setSavedTipPercentage] = useState(15);
+  const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     loadLocation();
+    loadExchangeRate();
   }, []);
+
+  const loadExchangeRate = async () => {
+    const rate = await getExchangeRate('USD', 'KRW');
+    setExchangeRate(rate);
+    setLastUpdated(new Date());
+  };
 
   const loadLocation = async () => {
     setLoadingLocation(true);
@@ -111,6 +124,12 @@ export default function App() {
 
   const { cost, tax, tip, total } = calculateTotals();
 
+  useEffect(() => {
+    if (exchangeRate > 0) {
+      setKrwAmount(Math.round(total * exchangeRate));
+    }
+  }, [total, exchangeRate]);
+
   const handleRound = () => {
     if (cost === 0) return;
 
@@ -123,6 +142,23 @@ export default function App() {
 
     const newPercentage = (newTip / cost) * 100;
     setTipPercentage(newPercentage);
+    // If we round, we ensure tip is enabled if it wasn't
+    if (!isTipEnabled) {
+      setIsTipEnabled(true);
+    }
+  };
+
+  const handleTipToggle = () => {
+    if (isTipEnabled) {
+      // Disable tip
+      setSavedTipPercentage(tipPercentage);
+      setTipPercentage(0);
+      setIsTipEnabled(false);
+    } else {
+      // Enable tip
+      setTipPercentage(savedTipPercentage);
+      setIsTipEnabled(true);
+    }
   };
 
   const renderContent = () => (
@@ -162,13 +198,25 @@ export default function App() {
         </View>
       </View>
 
-      <TipSlider value={tipPercentage} onValueChange={setTipPercentage} />
+      <TipSlider
+        value={tipPercentage}
+        onValueChange={(val) => {
+          setTipPercentage(val);
+          // If user slides, ensure it's enabled
+          if (!isTipEnabled && val > 0) setIsTipEnabled(true);
+        }}
+        enabled={isTipEnabled}
+        onToggle={handleTipToggle}
+      />
 
       <ResultCard
         foodCost={cost}
         taxAmount={tax}
         tipAmount={tip}
         totalAmount={total}
+        krwAmount={krwAmount}
+        exchangeRate={exchangeRate}
+        lastUpdated={lastUpdated}
         onRound={handleRound}
       />
     </View>
