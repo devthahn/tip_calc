@@ -33,29 +33,22 @@ const ZIP_TAX_RATES: { [key: string]: number } = {
     "10001": 8.875
 };
 
-import { supabase } from './SupabaseClient';
-
 export const getTaxRate = async (stateInput: string | null, zipCode: string | null = null): Promise<number> => {
-    // 1. Try Supabase with Zip Code (Most Accurate)
+    // 1. Try API with Zip Code (Most Accurate)
     if (zipCode) {
         try {
-            const cleanZip = zipCode.split('-')[0];
-
-            const { data, error } = await supabase
-                .from('tax_rates')
-                .select('combined_rate')
-                .eq('zip_code', cleanZip)
-                .single();
-
-            if (data && data.combined_rate) {
-                return data.combined_rate * 100;
-            }
-
-            if (error) {
-                console.warn("Supabase lookup error:", error.message);
+            // Call our own server-side API
+            const response = await fetch(`/api/tax-rate?zip=${zipCode}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.rate !== undefined) {
+                    return data.rate * 100;
+                }
+            } else {
+                console.warn("API lookup failed:", response.statusText);
             }
         } catch (error) {
-            console.warn("Error fetching tax rate from Supabase:", error);
+            console.warn("Error fetching tax rate from API:", error);
         }
     }
 
