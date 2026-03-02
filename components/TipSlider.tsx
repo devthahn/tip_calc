@@ -37,9 +37,9 @@ const TipSlider: React.FC<TipSliderProps> = ({ value, onValueChange, enabled = t
                     step={0.1}
                     value={enabled ? value : 0}
                     onValueChange={onValueChange}
-                    minimumTrackTintColor={enabled ? "#4CAF50" : "#ccc"}
-                    maximumTrackTintColor="#000000"
-                    thumbTintColor={enabled ? "#4CAF50" : "#ccc"}
+                    minimumTrackTintColor={enabled ? "#A855F7" : "#555"}
+                    maximumTrackTintColor="rgba(255, 255, 255, 0.1)"
+                    thumbTintColor={enabled ? "#A855F7" : "#555"}
                     disabled={!enabled}
                 />
             </View>
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 16,
-        color: '#666',
+        color: '#AAA',
         marginBottom: 10,
     },
     sliderRow: {
@@ -75,24 +75,27 @@ const styles = StyleSheet.create({
     toggleButton: {
         padding: 5,
         borderRadius: 20,
-        backgroundColor: '#eee',
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
         marginRight: 10,
         height: 40,
         width: 60,
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
     },
     toggleButtonActive: {
-        backgroundColor: '#FF5722',
+        backgroundColor: '#A855F7',
+        borderColor: '#A855F7',
     },
     toggleButtonText: {
         fontSize: 12,
         fontWeight: 'bold',
-        color: '#555',
+        color: '#AAA',
         textAlign: 'center',
     },
     toggleButtonTextActive: {
-        color: '#fff',
+        color: '#FFF',
     },
     valueContainer: {
         marginBottom: 10,
@@ -100,10 +103,14 @@ const styles = StyleSheet.create({
     value: {
         fontSize: 40,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#FFF',
+        textShadowColor: 'rgba(255, 255, 255, 0.2)',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10,
     },
     valueDisabled: {
-        color: '#ccc',
+        color: '#555',
+        textShadowColor: 'transparent',
     },
     slider: {
         flex: 1, // Take remaining width
@@ -121,7 +128,7 @@ const styles = StyleSheet.create({
     },
     rangeText: {
         fontSize: 12,
-        color: '#999',
+        color: '#666',
     },
 });
 

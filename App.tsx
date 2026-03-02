@@ -163,6 +163,10 @@ export default function App() {
 
   const renderContent = () => (
     <View style={styles.content}>
+      <View style={styles.mascotContainer} pointerEvents="none">
+        <Text style={styles.mascotText}>🐌</Text>
+      </View>
+
       <View style={styles.inputContainer}>
         <Text style={styles.currencySymbol}>$</Text>
         <TextInput
@@ -171,7 +175,7 @@ export default function App() {
           keyboardType="decimal-pad"
           value={foodCost}
           onChangeText={handleFoodCostChange}
-          placeholderTextColor="#ccc"
+          placeholderTextColor="#555"
         />
       </View>
 
@@ -252,7 +256,7 @@ export default function App() {
               <Text style={styles.title}>Tip Calculator</Text>
               <View style={styles.locationContainer}>
                 {loadingLocation ? (
-                  <ActivityIndicator size="small" color="#4CAF50" />
+                  <ActivityIndicator size="small" color="#A855F7" />
                 ) : (
                   <Text style={styles.locationText}>
                     {locationState ? `${locationState} ${zipCode ? `(${zipCode})` : ''}` : 'Location not found'}
@@ -272,7 +276,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#0A0A0F',
     paddingTop: 40,
   },
   header: {
@@ -280,9 +284,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFF',
+    letterSpacing: 1,
   },
   locationContainer: {
     flexDirection: 'row',
@@ -291,7 +296,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 14,
-    color: '#666',
+    color: '#AAA',
   },
   content: {
     flex: 1,
@@ -306,13 +311,13 @@ const styles = StyleSheet.create({
   currencySymbol: {
     fontSize: 40,
     fontWeight: '300',
-    color: '#333',
+    color: '#888',
     marginRight: 5,
   },
   input: {
     fontSize: 50,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFF',
     minWidth: 100,
     textAlign: 'center',
   },
@@ -326,29 +331,36 @@ const styles = StyleSheet.create({
   taxInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
     width: '48%', // Split width
     justifyContent: 'center'
   },
   taxLabel: {
     fontSize: 14,
-    color: '#666',
+    color: '#AAA',
     fontWeight: '500',
     marginRight: 5,
   },
   taxInput: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFF',
     minWidth: 40,
     textAlign: 'center',
   },
+  mascotContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    opacity: 0.1,
+    transform: [{ scale: 2 }],
+  },
+  mascotText: {
+    fontSize: 100,
+  }
 });

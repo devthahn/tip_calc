@@ -63,13 +63,15 @@ export default function ResultCard({ foodCost, taxAmount, tipAmount, totalAmount
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#fff',
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
         borderRadius: 20,
         padding: 20,
         width: '100%',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.3,
         shadowRadius: 10,
         elevation: 5,
     },
@@ -80,16 +82,16 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 16,
-        color: '#666',
+        color: '#AAA',
     },
     value: {
         fontSize: 16,
         fontWeight: '500',
-        color: '#333',
+        color: '#FFF',
     },
     divider: {
         height: 1,
-        backgroundColor: '#eee',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
         marginVertical: 10,
     },
     totalRow: {
@@ -101,7 +103,7 @@ const styles = StyleSheet.create({
     totalLabel: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#FFF',
         marginTop: 5, // Visual alignment with the first row of right column
     },
     totalRightColumn: {
@@ -115,21 +117,26 @@ const styles = StyleSheet.create({
     totalValue: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#4CAF50',
+        color: '#A855F7',
         marginRight: 10,
+        textShadowColor: 'rgba(168, 85, 247, 0.4)',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 8,
     },
     rateText: {
         fontSize: 12,
-        color: '#999',
+        color: '#888',
         marginBottom: 2,
     },
     krwValue: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#555',
+        color: '#DDD',
     },
     roundButton: {
-        backgroundColor: '#E0E0E0',
+        backgroundColor: 'rgba(168, 85, 247, 0.2)',
+        borderColor: 'rgba(168, 85, 247, 0.5)',
+        borderWidth: 1,
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 15,
@@ -137,6 +144,6 @@ const styles = StyleSheet.create({
     roundButtonText: {
         fontSize: 12,
         fontWeight: 'bold',
-        color: '#555',
+        color: '#E9D5FF',
     },
 });
