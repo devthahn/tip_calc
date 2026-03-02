@@ -37,9 +37,9 @@ const TipSlider: React.FC<TipSliderProps> = ({ value, onValueChange, enabled = t
                     step={0.1}
                     value={enabled ? value : 0}
                     onValueChange={onValueChange}
-                    minimumTrackTintColor={enabled ? "#A855F7" : "#555"}
-                    maximumTrackTintColor="rgba(255, 255, 255, 0.1)"
-                    thumbTintColor={enabled ? "#A855F7" : "#555"}
+                    minimumTrackTintColor={enabled ? "#4ade80" : "#a3b8a8"}
+                    maximumTrackTintColor="rgba(28, 61, 46, 0.1)"
+                    thumbTintColor={enabled ? "#22c55e" : "#a3b8a8"}
                     disabled={!enabled}
                 />
             </View>
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 16,
-        color: '#AAA',
+        color: '#5e7a6b',
         marginBottom: 10,
     },
     sliderRow: {
@@ -75,23 +75,23 @@ const styles = StyleSheet.create({
     toggleButton: {
         padding: 5,
         borderRadius: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
         marginRight: 10,
         height: 40,
         width: 60,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'rgba(74, 222, 128, 0.2)',
     },
     toggleButtonActive: {
-        backgroundColor: '#A855F7',
-        borderColor: '#A855F7',
+        backgroundColor: '#22c55e',
+        borderColor: '#22c55e',
     },
     toggleButtonText: {
         fontSize: 12,
         fontWeight: 'bold',
-        color: '#AAA',
+        color: '#5e7a6b',
         textAlign: 'center',
     },
     toggleButtonTextActive: {
@@ -103,13 +103,13 @@ const styles = StyleSheet.create({
     value: {
         fontSize: 40,
         fontWeight: 'bold',
-        color: '#FFF',
-        textShadowColor: 'rgba(255, 255, 255, 0.2)',
+        color: '#1c3d2e',
+        textShadowColor: 'rgba(74, 222, 128, 0.3)',
         textShadowOffset: { width: 0, height: 0 },
         textShadowRadius: 10,
     },
     valueDisabled: {
-        color: '#555',
+        color: '#a3b8a8',
         textShadowColor: 'transparent',
     },
     slider: {
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     },
     rangeText: {
         fontSize: 12,
-        color: '#666',
+        color: '#5e7a6b',
     },
 });
 
