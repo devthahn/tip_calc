@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, SafeAreaView, Keyboard, TouchableWithoutFeedback, ActivityIndicator, Platform } from 'react-native';
+import { StyleSheet, Text, View, TextInput, SafeAreaView, Keyboard, TouchableWithoutFeedback, ActivityIndicator, Platform, Image } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { getCurrentLocation } from './services/LocationService';
@@ -233,7 +233,10 @@ export default function App() {
           <StatusBar style="auto" />
 
           <View style={styles.header}>
-            <Text style={styles.title}>Tip Calculator</Text>
+            <View style={styles.titleRow}>
+              <Image source={require('./assets/icon.png')} style={styles.titleIcon} />
+              <Text style={styles.title}>Tip Calculator</Text>
+            </View>
             <View style={styles.locationContainer}>
               {loadingLocation ? (
                 <ActivityIndicator size="small" color="#4ade80" />
@@ -253,7 +256,10 @@ export default function App() {
             <StatusBar style="auto" />
 
             <View style={styles.header}>
-              <Text style={styles.title}>Tip Calculator</Text>
+              <View style={styles.titleRow}>
+                <Image source={require('./assets/icon.png')} style={styles.titleIcon} />
+                <Text style={styles.title}>Tip Calculator</Text>
+              </View>
               <View style={styles.locationContainer}>
                 {loadingLocation ? (
                   <ActivityIndicator size="small" color="#4ade80" />
@@ -282,6 +288,16 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 20,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  titleIcon: {
+    width: 32,
+    height: 32,
+    marginRight: 8,
+    borderRadius: 6,
   },
   title: {
     fontSize: 28,
