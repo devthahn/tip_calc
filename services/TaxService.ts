@@ -1,3 +1,10 @@
+export interface TaxRateResult {
+    rate: number;
+    isFallback: boolean;
+    source: 'api' | 'local_zip' | 'state_avg' | 'default';
+    message?: string;
+}
+
 // Mock data for US State Tax Rates (Average combined rates)
 // Source: https://taxfoundation.org/data/all/state/2024-sales-taxes/ (Approximation)
 const STATE_TAX_RATES: { [key: string]: number } = {
@@ -33,7 +40,7 @@ const ZIP_TAX_RATES: { [key: string]: number } = {
     "10001": 8.875
 };
 
-export const getTaxRate = async (stateInput: string | null, zipCode: string | null = null): Promise<number> => {
+export const getTaxRate = async (stateInput: string | null, zipCode: string | null = null): Promise<TaxRateResult> => {
     // 1. Try API with Zip Code (Most Accurate)
     if (zipCode) {
         try {
@@ -41,14 +48,19 @@ export const getTaxRate = async (stateInput: string | null, zipCode: string | nu
             const response = await fetch(`/api/tax-rate?zip=${zipCode}`);
             if (response.ok) {
                 const data = await response.json();
-                if (data.rate !== undefined) {
-                    return data.rate * 100;
+                if (data.rate !== undefined && data.rate > 0) {
+                    return {
+                        rate: data.rate * 100,
+                        isFallback: false,
+                        source: 'api',
+                        message: 'API'
+                    };
                 }
             } else {
                 console.warn("API lookup failed:", response.statusText);
             }
         } catch (error) {
-            console.warn("Error fetching tax rate from API:", error);
+            console.warn("Error fetching tax rate from API (offline/serverless unavailable):", error);
         }
     }
 
@@ -56,12 +68,24 @@ export const getTaxRate = async (stateInput: string | null, zipCode: string | nu
     if (zipCode) {
         const cleanZip = zipCode.split('-')[0];
         if (ZIP_TAX_RATES[cleanZip]) {
-            return ZIP_TAX_RATES[cleanZip];
+            return {
+                rate: ZIP_TAX_RATES[cleanZip],
+                isFallback: false,
+                source: 'local_zip',
+                message: 'Local Database'
+            };
         }
     }
 
     // 3. Fallback to State Average
-    if (!stateInput) return 0;
+    if (!stateInput) {
+        return {
+            rate: 0,
+            isFallback: true,
+            source: 'default',
+            message: 'Default'
+        };
+    }
 
     let code = stateInput.toUpperCase();
 
@@ -74,7 +98,14 @@ export const getTaxRate = async (stateInput: string | null, zipCode: string | nu
         }
     }
 
-    return STATE_TAX_RATES[code] || 0;
+    const stateAvgRate = STATE_TAX_RATES[code] || 0;
+    return {
+        rate: stateAvgRate,
+        isFallback: true,
+        source: 'state_avg',
+        message: 'State Avg (Offline / Estimated)'
+    };
 };
 
 export const defaultTaxRate = 0;
+

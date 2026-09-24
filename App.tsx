@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, SafeAreaView, Keyboard, TouchableWithoutFeedback, ActivityIndicator, Platform, Image } from 'react-native';
+import { StyleSheet, Text, View, TextInput, SafeAreaView, Keyboard, TouchableWithoutFeedback, TouchableOpacity, ActivityIndicator, Platform, Image } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { getCurrentLocation } from './services/LocationService';
-import { getTaxRate } from './services/TaxService';
+import { getTaxRate, TaxRateResult } from './services/TaxService';
 import { getExchangeRate } from './services/CurrencyService';
 import TipSlider from './components/TipSlider';
 import ResultCard from './components/ResultCard';
@@ -14,6 +14,7 @@ export default function App() {
   const [taxAmount, setTaxAmount] = useState('');
   const [taxRate, setTaxRate] = useState(0);
   const [taxRateInput, setTaxRateInput] = useState('0');
+  const [taxResult, setTaxResult] = useState<TaxRateResult | null>(null);
   const [locationState, setLocationState] = useState<string | null>(null);
   const [zipCode, setZipCode] = useState<string | null>(null);
   const [loadingLocation, setLoadingLocation] = useState(true);
@@ -44,7 +45,9 @@ export default function App() {
       setLocationState(region);
       setZipCode(zip);
 
-      const rate = await getTaxRate(region, zip);
+      const result = await getTaxRate(region, zip);
+      setTaxResult(result);
+      const rate = result.rate;
       const validRate = isNaN(rate) ? 0 : rate;
       setTaxRate(validRate);
       setTaxRateInput(validRate.toFixed(2)); // Initialize taxRateInput with the fetched rate
@@ -226,51 +229,59 @@ export default function App() {
     </View>
   );
 
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <View style={styles.titleRow}>
+        <Image source={require('./assets/icon.png')} style={styles.titleIcon} />
+        <Text style={styles.title}>Tip Calculator</Text>
+      </View>
+      <View style={styles.locationContainer}>
+        {loadingLocation ? (
+          <ActivityIndicator size="small" color="#4ade80" />
+        ) : (
+          <View style={styles.locationRow}>
+            <Text style={styles.locationText}>
+              {locationState ? (
+                <>
+                  {locationState} {zipCode ? `(${zipCode})` : ''}
+                  {taxResult?.isFallback && (
+                    <Text style={styles.fallbackBadge}> (Estimated / Offline)</Text>
+                  )}
+                </>
+              ) : (
+                'Location not found'
+              )}
+            </Text>
+            {(taxResult?.isFallback || !locationState) && (
+              <TouchableOpacity
+                style={styles.reloadButton}
+                onPress={loadLocation}
+                activeOpacity={0.7}
+                accessibilityLabel="Retry location and tax rate lookup"
+              >
+                <Text style={styles.reloadIcon}>🔄</Text>
+                <Text style={styles.reloadText}>Retry</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+      </View>
+    </View>
+  );
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       {Platform.OS === 'web' ? (
         <SafeAreaView style={styles.container}>
           <StatusBar style="auto" />
-
-          <View style={styles.header}>
-            <View style={styles.titleRow}>
-              <Image source={require('./assets/icon.png')} style={styles.titleIcon} />
-              <Text style={styles.title}>Tip Calculator</Text>
-            </View>
-            <View style={styles.locationContainer}>
-              {loadingLocation ? (
-                <ActivityIndicator size="small" color="#4ade80" />
-              ) : (
-                <Text style={styles.locationText}>
-                  {locationState ? `${locationState} ${zipCode ? `(${zipCode})` : ''}` : 'Location not found'}
-                </Text>
-              )}
-            </View>
-          </View>
-
+          {renderHeader()}
           {renderContent()}
         </SafeAreaView>
       ) : (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <SafeAreaView style={styles.container}>
             <StatusBar style="auto" />
-
-            <View style={styles.header}>
-              <View style={styles.titleRow}>
-                <Image source={require('./assets/icon.png')} style={styles.titleIcon} />
-                <Text style={styles.title}>Tip Calculator</Text>
-              </View>
-              <View style={styles.locationContainer}>
-                {loadingLocation ? (
-                  <ActivityIndicator size="small" color="#4ade80" />
-                ) : (
-                  <Text style={styles.locationText}>
-                    {locationState ? `${locationState} ${zipCode ? `(${zipCode})` : ''}` : 'Location not found'}
-                  </Text>
-                )}
-              </View>
-            </View>
-
+            {renderHeader()}
             {renderContent()}
           </SafeAreaView>
         </TouchableWithoutFeedback>
@@ -310,9 +321,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 5,
   },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  reloadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(74, 222, 128, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    marginLeft: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(74, 222, 128, 0.4)',
+  },
+  reloadIcon: {
+    fontSize: 12,
+    marginRight: 4,
+  },
+  reloadText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#166534',
+  },
   locationText: {
     fontSize: 14,
     color: '#5e7a6b',
+  },
+  fallbackBadge: {
+    fontSize: 12,
+    color: '#d97706',
+    fontWeight: '600',
   },
   content: {
     flex: 1,
