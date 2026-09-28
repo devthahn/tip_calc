@@ -20,14 +20,7 @@ html = html.replace(/content="width=device-width[^"]*"/, targetViewport);
 
 // 2. Patch expo-reset styles to lock horizontal overflow and prevent iOS Safari keyboard shifts
 const improvedResetStyle = `<style id="expo-reset">
-      html {
-        width: 100%;
-        height: 100%;
-        overflow-x: hidden;
-        -webkit-text-size-adjust: 100%;
-        overscroll-behavior-x: none;
-        touch-action: pan-y;
-      }
+      html,
       body {
         width: 100%;
         height: 100%;
@@ -35,14 +28,8 @@ const improvedResetStyle = `<style id="expo-reset">
         padding: 0;
         overflow: hidden;
         overflow-x: hidden;
-        position: fixed;
-        left: 0;
-        top: 0;
-        right: 0;
-        bottom: 0;
+        -webkit-text-size-adjust: 100%;
         overscroll-behavior: none;
-        touch-action: pan-y;
-        -webkit-overflow-scrolling: touch;
       }
       #root {
         display: flex;

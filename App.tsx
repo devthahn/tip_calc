@@ -85,14 +85,35 @@ export default function App() {
     };
   }, []);
 
-  const dismissKeyboard = () => {
-    Keyboard.dismiss();
-    if (Platform.OS === 'web' && typeof document !== 'undefined') {
-      if (document.activeElement instanceof HTMLElement) {
+  // Web: dismiss keyboard on background tap without blocking input clicks
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'BUTTON' ||
+        target.tagName === 'A' ||
+        target.closest('input, textarea, button, a')
+      ) {
+        return;
+      }
+      if (document.activeElement instanceof HTMLElement && document.activeElement.tagName === 'INPUT') {
         document.activeElement.blur();
       }
-      handleInputBlur();
-    }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown, { passive: true });
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, []);
+
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
   };
 
   const loadExchangeRate = async () => {
@@ -340,13 +361,21 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <TouchableWithoutFeedback onPress={dismissKeyboard} accessible={false}>
+      {Platform.OS === 'web' ? (
         <SafeAreaView style={styles.container}>
           <StatusBar style="auto" />
           {renderHeader()}
           {renderContent()}
         </SafeAreaView>
-      </TouchableWithoutFeedback>
+      ) : (
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
+          <SafeAreaView style={styles.container}>
+            <StatusBar style="auto" />
+            {renderHeader()}
+            {renderContent()}
+          </SafeAreaView>
+        </TouchableWithoutFeedback>
+      )}
     </GestureHandlerRootView>
   );
 }
@@ -483,7 +512,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1c3d2e',
     minWidth: 40,
+    flex: 1,
     textAlign: 'center',
+    paddingVertical: 4,
   },
   mascotContainer: {
     position: 'absolute',
