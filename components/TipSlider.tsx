@@ -115,6 +115,8 @@ const styles = StyleSheet.create({
     slider: {
         flex: 1, // Take remaining width
         height: 40,
+        // @ts-ignore - web touch action to prevent scroll gestures during slider interaction
+        touchAction: 'none',
     },
     labelsRow: {
         flexDirection: 'row',

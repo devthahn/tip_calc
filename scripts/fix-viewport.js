@@ -1,6 +1,6 @@
 /**
- * Post-build script: adds maximum-scale=1, user-scalable=no to the viewport meta tag
- * in dist/index.html to prevent iOS Safari pinch-to-zoom conflicts with touch interactions.
+ * Post-build script: patches viewport meta tag and CSS resets in dist/index.html
+ * to prevent iOS Safari horizontal scroll, shifts, and pinch-to-zoom issues.
  */
 const fs = require('fs');
 const path = require('path');
@@ -14,15 +14,49 @@ if (!fs.existsSync(indexPath)) {
 
 let html = fs.readFileSync(indexPath, 'utf8');
 
-const oldViewport = 'content="width=device-width, initial-scale=1, shrink-to-fit=no"';
-const newViewport = 'content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1, user-scalable=no"';
+// 1. Patch viewport meta tag
+const targetViewport = 'content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover"';
+html = html.replace(/content="width=device-width[^"]*"/, targetViewport);
 
-if (html.includes(newViewport)) {
-    console.log('✅ Viewport already patched.');
-} else if (html.includes(oldViewport)) {
-    html = html.replace(oldViewport, newViewport);
-    fs.writeFileSync(indexPath, html, 'utf8');
-    console.log('✅ Viewport patched: added maximum-scale=1, user-scalable=no');
-} else {
-    console.warn('⚠️ Could not find expected viewport meta tag to patch.');
-}
+// 2. Patch expo-reset styles to lock horizontal overflow and prevent iOS Safari keyboard shifts
+const improvedResetStyle = `<style id="expo-reset">
+      html {
+        width: 100%;
+        height: 100%;
+        overflow-x: hidden;
+        -webkit-text-size-adjust: 100%;
+        overscroll-behavior-x: none;
+        touch-action: pan-y;
+      }
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        overflow-x: hidden;
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        overscroll-behavior: none;
+        touch-action: pan-y;
+        -webkit-overflow-scrolling: touch;
+      }
+      #root {
+        display: flex;
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        flex: 1;
+        overflow: hidden;
+        overflow-x: hidden;
+      }
+    </style>`;
+
+html = html.replace(/<style id="expo-reset">[\s\S]*?<\/style>/, improvedResetStyle);
+
+fs.writeFileSync(indexPath, html, 'utf8');
+console.log('✅ Viewport and reset styles successfully patched in dist/index.html');
+

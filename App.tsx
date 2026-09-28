@@ -29,6 +29,72 @@ export default function App() {
     loadExchangeRate();
   }, []);
 
+  // Web/iOS Safari: ensure page never shifts horizontally
+  const handleInputBlur = () => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        if (document.documentElement) document.documentElement.scrollLeft = 0;
+        if (document.body) document.body.scrollLeft = 0;
+      }, 100);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        if (document.documentElement) document.documentElement.scrollLeft = 0;
+        if (document.body) document.body.scrollLeft = 0;
+      }, 300);
+    }
+  };
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+
+    const preventHorizontalShift = () => {
+      if (window.scrollX !== 0 || window.pageXOffset !== 0) {
+        window.scrollTo(0, window.scrollY);
+      }
+      if (document.documentElement && document.documentElement.scrollLeft !== 0) {
+        document.documentElement.scrollLeft = 0;
+      }
+      if (document.body && document.body.scrollLeft !== 0) {
+        document.body.scrollLeft = 0;
+      }
+    };
+
+    window.addEventListener('scroll', preventHorizontalShift, { passive: true });
+
+    const vv = window.visualViewport;
+    if (vv) {
+      const handleVisualViewport = () => {
+        if (vv.offsetLeft !== 0 || window.scrollX !== 0) {
+          window.scrollTo(0, 0);
+        }
+      };
+      vv.addEventListener('scroll', handleVisualViewport);
+      vv.addEventListener('resize', handleVisualViewport);
+
+      return () => {
+        window.removeEventListener('scroll', preventHorizontalShift);
+        vv.removeEventListener('scroll', handleVisualViewport);
+        vv.removeEventListener('resize', handleVisualViewport);
+      };
+    }
+
+    return () => {
+      window.removeEventListener('scroll', preventHorizontalShift);
+    };
+  }, []);
+
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+      handleInputBlur();
+    }
+  };
+
   const loadExchangeRate = async () => {
     const rate = await getExchangeRate('USD', 'KRW');
     setExchangeRate(rate);
@@ -179,6 +245,7 @@ export default function App() {
           value={foodCost}
           onChangeText={handleFoodCostChange}
           placeholderTextColor="#5e7a6b"
+          onBlur={handleInputBlur}
         />
       </View>
 
@@ -191,6 +258,7 @@ export default function App() {
             onChangeText={handleTaxAmountChange}
             keyboardType="decimal-pad"
             placeholder="0.00"
+            onBlur={handleInputBlur}
           />
         </View>
         <View style={styles.taxInputWrapper}>
@@ -201,6 +269,7 @@ export default function App() {
             onChangeText={handleTaxRateChange}
             keyboardType="decimal-pad"
             placeholder="0.0"
+            onBlur={handleInputBlur}
           />
         </View>
       </View>
@@ -270,31 +339,32 @@ export default function App() {
   );
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      {Platform.OS === 'web' ? (
+    <GestureHandlerRootView style={styles.root}>
+      <TouchableWithoutFeedback onPress={dismissKeyboard} accessible={false}>
         <SafeAreaView style={styles.container}>
           <StatusBar style="auto" />
           {renderHeader()}
           {renderContent()}
         </SafeAreaView>
-      ) : (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <SafeAreaView style={styles.container}>
-            <StatusBar style="auto" />
-            {renderHeader()}
-            {renderContent()}
-          </SafeAreaView>
-        </TouchableWithoutFeedback>
-      )}
+      </TouchableWithoutFeedback>
     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f4faeb',
     paddingTop: 40,
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   header: {
     alignItems: 'center',
@@ -360,6 +430,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     alignItems: 'center',
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -383,6 +456,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
+    maxWidth: '100%',
     marginBottom: 20,
     paddingHorizontal: 10,
   },
@@ -413,12 +487,12 @@ const styles = StyleSheet.create({
   },
   mascotContainer: {
     position: 'absolute',
-    bottom: 20,
-    right: 20,
+    bottom: 10,
+    right: 15,
     opacity: 0.1,
-    transform: [{ scale: 2 }],
+    overflow: 'hidden',
   },
   mascotText: {
-    fontSize: 100,
+    fontSize: 140,
   }
 });
