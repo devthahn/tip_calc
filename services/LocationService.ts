@@ -22,19 +22,22 @@ export const getCurrentLocation = async () => {
         });
         console.log('Reverse geocode result:', reverseGeocode);
 
-        if (Platform.OS === 'web' && (!reverseGeocode || reverseGeocode.length === 0 || !reverseGeocode[0].region)) {
-            console.log('Expo geocoding failed on web, trying OpenStreetMap...');
+        const hasPostalCode = reverseGeocode && reverseGeocode.length > 0 && reverseGeocode[0].postalCode;
+        const hasRegion = reverseGeocode && reverseGeocode.length > 0 && reverseGeocode[0].region;
+
+        if (Platform.OS === 'web' && (!hasRegion || !hasPostalCode)) {
+            console.log('Expo geocoding missing region or zip on web, trying OpenStreetMap...');
             try {
                 const response = await fetch(
                     `https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.coords.latitude}&lon=${location.coords.longitude}`
                 );
                 const data = await response.json();
                 console.log('OSM data:', data);
-                if (data.address && data.address.state) {
+                if (data.address && (data.address.state || data.address.postcode)) {
                     return {
-                        region: data.address.state,
-                        isoCountryCode: data.address.country_code?.toUpperCase(),
-                        zipCode: data.address.postcode
+                        region: data.address.state || (reverseGeocode?.[0]?.region ?? null),
+                        isoCountryCode: data.address.country_code?.toUpperCase() || (reverseGeocode?.[0]?.isoCountryCode ?? null),
+                        zipCode: data.address.postcode || (reverseGeocode?.[0]?.postalCode ?? null)
                     } as any;
                 }
             } catch (err) {

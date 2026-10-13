@@ -1,9 +1,23 @@
+import { Platform } from 'react-native';
+
 export interface TaxRateResult {
     rate: number;
     isFallback: boolean;
-    source: 'api' | 'local_zip' | 'state_avg' | 'default';
+    source: 'api' | 'state_avg' | 'default';
     message?: string;
 }
+
+const getApiBaseUrl = (): string => {
+    // 1. Allow overriding API base URL via environment variable (e.g., for native iOS/Android builds)
+    if (process.env.EXPO_PUBLIC_API_URL) {
+        return process.env.EXPO_PUBLIC_API_URL.replace(/\/$/, '');
+    }
+    // 2. In web browser, use window origin or relative path
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.origin) {
+        return window.location.origin;
+    }
+    return '';
+};
 
 // Mock data for US State Tax Rates (Average combined rates)
 // Source: https://taxfoundation.org/data/all/state/2024-sales-taxes/ (Approximation)
@@ -30,54 +44,43 @@ const STATE_NAME_TO_CODE: { [key: string]: string } = {
     "Washington": "WA", "West Virginia": "WV", "Wisconsin": "WI", "Wyoming": "WY"
 };
 
-// Specific tax rates for known zip codes (e.g. Irvine, CA)
-// In a real app, this would come from an API
-const ZIP_TAX_RATES: { [key: string]: number } = {
-    // Irvine, CA Zip Codes
-    "92602": 7.75, "92603": 7.75, "92604": 7.75, "92606": 7.75, "92612": 7.75,
-    "92614": 7.75, "92617": 7.75, "92618": 7.75, "92620": 7.75, "92697": 7.75,
-    // Example: NYC
-    "10001": 8.875
-};
-
 export const getTaxRate = async (stateInput: string | null, zipCode: string | null = null): Promise<TaxRateResult> => {
-    // 1. Try API with Zip Code (Most Accurate)
+    // 1. Query Serverless API by ZIP Code (/api/tax-rate)
     if (zipCode) {
+        const cleanZip = zipCode.split('-')[0].trim();
         try {
-            // Call our own server-side API
-            const response = await fetch(`/api/tax-rate?zip=${zipCode}`);
+            const baseUrl = getApiBaseUrl();
+            const endpoint = `${baseUrl}/api/tax-rate?zip=${encodeURIComponent(cleanZip)}`;
+            const response = await fetch(endpoint, {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
+
             if (response.ok) {
-                const data = await response.json();
-                if (data.rate !== undefined && data.rate > 0) {
-                    return {
-                        rate: data.rate * 100,
-                        isFallback: false,
-                        source: 'api',
-                        message: 'API'
-                    };
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                    const data = await response.json();
+                    if (data.rate !== undefined && data.rate > 0) {
+                        return {
+                            rate: data.rate * 100,
+                            isFallback: false,
+                            source: 'api',
+                            message: 'API'
+                        };
+                    }
+                } else {
+                    console.warn("API returned non-JSON response (e.g. HTML rewrite error):", contentType);
                 }
             } else {
-                console.warn("API lookup failed:", response.statusText);
+                console.warn(`API lookup failed (${response.status}):`, response.statusText);
             }
         } catch (error) {
-            console.warn("Error fetching tax rate from API (offline/serverless unavailable):", error);
+            console.warn("Error fetching tax rate from /api/tax-rate:", error);
         }
     }
 
-    // 2. Fallback to Local Zip Code Data
-    if (zipCode) {
-        const cleanZip = zipCode.split('-')[0];
-        if (ZIP_TAX_RATES[cleanZip]) {
-            return {
-                rate: ZIP_TAX_RATES[cleanZip],
-                isFallback: false,
-                source: 'local_zip',
-                message: 'Local Database'
-            };
-        }
-    }
-
-    // 3. Fallback to State Average
+    // 2. Fallback to State Average if ZIP not found in DB or API is unreachable
     if (!stateInput) {
         return {
             rate: 0,
@@ -87,11 +90,10 @@ export const getTaxRate = async (stateInput: string | null, zipCode: string | nu
         };
     }
 
-    let code = stateInput.toUpperCase();
+    let code = stateInput.toUpperCase().trim();
 
-    // Check if input is a full name
-    if (stateInput.length > 2) {
-        // Try to find the code for the name
+    // Check if input is a full state name
+    if (code.length > 2) {
         const foundCode = Object.keys(STATE_NAME_TO_CODE).find(key => key.toUpperCase() === code);
         if (foundCode) {
             code = STATE_NAME_TO_CODE[foundCode];

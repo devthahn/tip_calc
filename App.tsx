@@ -124,22 +124,34 @@ export default function App() {
 
   const loadLocation = async () => {
     setLoadingLocation(true);
-    const location = await getCurrentLocation();
-    if (location) {
-      const region = (location as any).region;
-      const zip = (location as any).zipCode || (location as any).postalCode;
+    try {
+      const location = await getCurrentLocation();
+      if (location) {
+        const region = (location as any).region;
+        const zip = (location as any).zipCode || (location as any).postalCode;
 
-      setLocationState(region);
-      setZipCode(zip);
+        setLocationState(region || null);
+        setZipCode(zip || null);
 
-      const result = await getTaxRate(region, zip);
-      setTaxResult(result);
-      const rate = result.rate;
-      const validRate = isNaN(rate) ? 0 : rate;
-      setTaxRate(validRate);
-      setTaxRateInput(validRate.toFixed(2)); // Initialize taxRateInput with the fetched rate
+        const result = await getTaxRate(region, zip);
+        setTaxResult(result);
+        const rate = result.rate;
+        const validRate = isNaN(rate) ? 0 : rate;
+        setTaxRate(validRate);
+        setTaxRateInput(validRate.toFixed(2));
+      } else {
+        setLocationState(null);
+        setZipCode(null);
+        const result = await getTaxRate(null, null);
+        setTaxResult(result);
+        setTaxRate(0);
+        setTaxRateInput('0.00');
+      }
+    } catch (err) {
+      console.error('Error loading location and tax rate:', err);
+    } finally {
+      setLoadingLocation(false);
     }
-    setLoadingLocation(false);
   };
 
   const calculateTaxAmount = (cost: number, rate: number): string => {
@@ -342,17 +354,20 @@ export default function App() {
                 'Location not found'
               )}
             </Text>
-            {(taxResult?.isFallback || !locationState) && (
-              <TouchableOpacity
-                style={styles.reloadButton}
-                onPress={loadLocation}
-                activeOpacity={0.7}
-                accessibilityLabel="Retry location and tax rate lookup"
-              >
-                <Text style={styles.reloadIcon}>🔄</Text>
+            <TouchableOpacity
+              style={[
+                styles.reloadButton,
+                taxResult?.isFallback || !locationState ? styles.reloadButtonWarning : null
+              ]}
+              onPress={loadLocation}
+              activeOpacity={0.7}
+              accessibilityLabel="Reload location and tax rate lookup"
+            >
+              <Text style={styles.reloadIcon}>🔄</Text>
+              {(taxResult?.isFallback || !locationState) && (
                 <Text style={styles.reloadText}>Retry</Text>
-              </TouchableOpacity>
-            )}
+              )}
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -437,14 +452,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(74, 222, 128, 0.4)',
   },
+  reloadButtonWarning: {
+    backgroundColor: 'rgba(217, 119, 6, 0.15)',
+    borderColor: 'rgba(217, 119, 6, 0.4)',
+  },
   reloadIcon: {
     fontSize: 12,
-    marginRight: 4,
+    marginRight: 2,
   },
   reloadText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#166534',
+    color: '#d97706',
+    marginLeft: 2,
   },
   locationText: {
     fontSize: 14,
