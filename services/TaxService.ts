@@ -70,7 +70,7 @@ export const getTaxRate = async (stateInput: string | null, zipCode: string | nu
                         };
                     }
                 } else {
-                    console.warn("API returned non-JSON response (e.g. HTML rewrite error):", contentType);
+                    console.warn("API returned non-JSON response:", contentType);
                 }
             } else {
                 console.warn(`API lookup failed (${response.status}):`, response.statusText);
@@ -110,4 +110,5 @@ export const getTaxRate = async (stateInput: string | null, zipCode: string | nu
 };
 
 export const defaultTaxRate = 0;
+
 

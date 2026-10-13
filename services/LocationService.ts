@@ -26,22 +26,26 @@ export const getCurrentLocation = async () => {
         const hasRegion = reverseGeocode && reverseGeocode.length > 0 && reverseGeocode[0].region;
 
         if (Platform.OS === 'web' && (!hasRegion || !hasPostalCode)) {
-            console.log('Expo geocoding missing region or zip on web, trying OpenStreetMap...');
+            console.log('Expo geocoding missing region or zip on web, trying client reverse geocoding API...');
             try {
+                // BigDataCloud client reverse geocoding API (free, CORS-enabled, reliable on web browsers)
                 const response = await fetch(
-                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.coords.latitude}&lon=${location.coords.longitude}`
+                    `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${location.coords.latitude}&longitude=${location.coords.longitude}&localityLanguage=en`
                 );
-                const data = await response.json();
-                console.log('OSM data:', data);
-                if (data.address && (data.address.state || data.address.postcode)) {
-                    return {
-                        region: data.address.state || (reverseGeocode?.[0]?.region ?? null),
-                        isoCountryCode: data.address.country_code?.toUpperCase() || (reverseGeocode?.[0]?.isoCountryCode ?? null),
-                        zipCode: data.address.postcode || (reverseGeocode?.[0]?.postalCode ?? null)
-                    } as any;
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Reverse geocode data:', data);
+                    if (data && (data.principalSubdivision || data.postcode)) {
+                        return {
+                            region: data.principalSubdivision || (reverseGeocode?.[0]?.region ?? null),
+                            isoCountryCode: data.countryCode || (reverseGeocode?.[0]?.isoCountryCode ?? null),
+                            zipCode: data.postcode || (reverseGeocode?.[0]?.postalCode ?? null),
+                            city: data.city || (reverseGeocode?.[0]?.city ?? null)
+                        } as any;
+                    }
                 }
             } catch (err) {
-                console.error('OSM fallback failed:', err);
+                console.error('Web reverse geocoding fallback failed:', err);
             }
         }
 
