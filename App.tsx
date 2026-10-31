@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, SafeAreaView, Keyboard, TouchableWithoutFeedback, TouchableOpacity, ActivityIndicator, Platform, Image } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
+import { Analytics } from '@vercel/analytics/react';
 import { getCurrentLocation } from './services/LocationService';
 import { getTaxRate, TaxRateResult } from './services/TaxService';
 import { getExchangeRate } from './services/CurrencyService';
@@ -391,6 +392,7 @@ export default function App() {
           </SafeAreaView>
         </TouchableWithoutFeedback>
       )}
+      {Platform.OS === 'web' && <Analytics />}
     </GestureHandlerRootView>
   );
 }

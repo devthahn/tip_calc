@@ -31,6 +31,14 @@ The Vercel deployment must serve both:
 - The exported static Web application
 - The `/api/tax-rate` serverless route
 
+### Web Analytics
+
+The web app includes Vercel Web Analytics through `@vercel/analytics`. Enable it
+for this project in the Vercel dashboard under **Analytics**, then redeploy the
+app. Analytics is rendered only on web; native iOS and Android builds do not
+load the web tracker. Page views appear in the dashboard after visitors use the
+deployed site.
+
 After deployment, verify the API route directly:
 
 ```text
@@ -84,6 +92,7 @@ The `tax_data/` directory is ignored by Git, so it must be provided separately.
 - [ ] Confirm `dist/` contains the exported Web app.
 - [ ] Configure `SUPABASE_URL` in Vercel.
 - [ ] Configure `SUPABASE_KEY` in Vercel.
+- [ ] Enable Web Analytics in the Vercel project dashboard.
 - [ ] Confirm the Supabase `tax_rates` table exists.
 - [ ] Confirm the required ZIP rows are present.
 - [ ] Check `/api/tax-rate?zip=...` after deployment.
